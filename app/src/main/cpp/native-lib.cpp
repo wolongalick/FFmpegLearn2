@@ -3,7 +3,7 @@
 #include <android/log.h>
 
 extern "C" {
-#include "include/libavcodec/avcodec.h"
+#include <libavformat/avformat.h>
 
 
 }
@@ -28,10 +28,29 @@ Java_com_alick_ffmpeglearn2_MainActivity_parseFile(JNIEnv *env, jobject thiz, js
 
     LOGI("哈哈哈哈");
 
-    avcodec_register_all();
+    av_register_all();
+
+    std::string config = avcodec_configuration();
+    LOGI("ffmpeg配置%s", config.c_str());
 
 
+    const char* path=env->GetStringUTFChars(file_path,0);
+    LOGI("文件路径:%s",path)
 
+    AVFormatContext *ic=NULL;
+
+    int re=avformat_open_input(&ic,path,0,0);
+
+    if(re==0){
+        LOGI("打开文件成功");
+    } else{
+        LOGI("打开文件失败,原因:%s",av_err2str(re));
+    }
+
+    LOGI("文件时长:%lld秒,文件流个数%d",ic->duration/AV_TIME_BASE,ic->nb_streams);
+
+
+    avformat_close_input(&ic);
 
     LOGE("休息休息");
     return env->NewStringUTF(hello.c_str());
