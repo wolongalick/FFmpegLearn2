@@ -59,4 +59,8 @@ public class MainActivity extends AppCompatActivity {
 
 
     private native String parseFile(String filePath);
+
+    public void clear(View view) {
+        etFilePath.setText(null);
+    }
 }

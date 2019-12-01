@@ -25,8 +25,26 @@ android {
 
         }
     }
+
+    //debug签名配置
+    signingConfigs {
+        config {
+            keyAlias 'ffmpeg'
+            keyPassword '123123'
+            storeFile file('ffmpeg.jks')
+            storePassword '123123'
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig signingConfigs.config
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+
+        debug {
+            signingConfig signingConfigs.config
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
