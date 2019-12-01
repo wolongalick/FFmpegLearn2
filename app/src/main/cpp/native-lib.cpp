@@ -1,11 +1,12 @@
 #include <jni.h>
 #include <string>
 #include <android/log.h>
+#include <queue>
+
 
 extern "C" {
-    #include <libavformat/avformat.h>
-    #include <libavcodec/avcodec.h>
-
+#include <libavformat/avformat.h>
+#include "cxw_str.h"
 }
 
 #define LOG_TAG "cxwFFmpeg"
@@ -21,59 +22,41 @@ Java_com_alick_ffmpeglearn2_MainActivity_stringFromJNI(
 }
 
 
-char* jstringToChar(JNIEnv* env, jstring jstr) {
-    char* rtn = NULL;
-    jclass clsstring = env->FindClass("java/lang/String");
-    jstring strencode = env->NewStringUTF("GB2312");
-    jmethodID mid = env->GetMethodID(clsstring, "getBytes", "(Ljava/lang/String;)[B");
-    jbyteArray barr = (jbyteArray) env->CallObjectMethod(jstr, mid, strencode);
-    jsize alen = env->GetArrayLength(barr);
-    jbyte* ba = env->GetByteArrayElements(barr, JNI_FALSE);
-    if (alen > 0) {
-        rtn = (char*) malloc(alen + 1);
-        memcpy(rtn, ba, alen);
-        rtn[alen] = 0;
-    }
-    env->ReleaseByteArrayElements(barr, ba, 0);
-    return rtn;
-}
-
 extern "C"
 JNIEXPORT jstring JNICALL
 Java_com_alick_ffmpeglearn2_MainActivity_parseFile(JNIEnv *env, jobject thiz, jstring file_path) {
 
-    std::string hello = "配置";
-    hello+=avcodec_configuration();
+    std::string hello = "11111111111";
 
-    LOGI("ffmpeg配置:%s",hello.c_str());
+    LOGI("哈哈哈哈");
 
-    //初始化解封装
     av_register_all();
-    //初始化网路
-    avformat_network_init();
 
-    AVFormatContext *ic=NULL;
-    char* path=jstringToChar(env,file_path);
-    //打开媒体文件
+    std::string config = avcodec_configuration();
+    LOGI("ffmpeg配置%s", config.c_str());
+
+    const char *path = env->GetStringUTFChars(file_path, 0);
+    LOGI("文件路径:%s", path)
+
+    AVFormatContext *ic = NULL;
+
     int re = avformat_open_input(&ic, path, 0, 0);
-    if(re==0){
-        LOGI("打开文件成功,文件路径:%s ",path)
-    } else{
-        LOGE("打开文件失败:%s",av_err2str(re))
+
+    if (re != 0) {
+        char *string = mergeStr(2, "打开文件失败,原因:", av_err2str(re));
+        jstring pJstring = env->NewStringUTF(string);
+        free(string);
+        return pJstring;
     }
 
+    LOGI("打开文件成功");
 
-//
-//    AVStream
-//    AVPacket
 
-//
-//    avformat_find_stream_info()
-//
-//    av_find_best_stream()
-//
-//    av_read_frame()
 
+    LOGI("文件时长:%lld秒,文件流个数%d", ic->duration / AV_TIME_BASE, ic->nb_streams);
+
+
+    avformat_close_input(&ic);
 
     LOGE("休息休息");
     return env->NewStringUTF(hello.c_str());
